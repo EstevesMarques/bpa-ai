@@ -57,7 +57,8 @@ O sistema opera como uma máquina de estados distribuída, orquestrada por event
 
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - [Bicep](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/install)
-- [.NET SDK 8.0](https://dotnet.microsoft.com/download) (ou a linguagem escolhida)
+- [Python 3.10+](https://www.python.org/downloads/)
+- [Azure Functions Core Tools](https://docs.microsoft.com/azure/azure-functions/functions-run-local)
 
 ### 1. Provisionar a Infraestrutura
 
