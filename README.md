@@ -11,40 +11,42 @@ A maioria das aplicações de IA atuais opera em um paradigma de "Perguntas e Re
 
 ## Diagrama da Arquitetura
 
-```
-                               +-----------------------------+
-                               |      Requisição HTTP        |
-                               | (ex: POST /api/onboarding)  |
-                               +-----------------------------+
-                                             |
-                                             v
-+-----------------------------------------------------------------------------------------+
-|                                    AZURE PLATFORM                                       |
-|                                                                                         |
-|    +------------------------+      +------------------------+      +------------------+   |
-|    | Azure Function App     |      | Azure Service Bus      |      | Azure Cosmos DB  |   |
-|    |                        |      |                        |      | (API MongoDB)    |   |
-|    |  +------------------+  |      |  +------------------+  |      |                  |   |
-|    |  | Agente Recepção  | ------------>| Tópico: Onboarding |      |  +------------+  |   |
-|    |  |  (HTTP Trigger)  |  |      |  +------------------+  |      |  | Coleção:   |  |   |
-|    |  +------------------+  |      |           |            |      |  | Processos  |  |   |
-|    |           |            |      |           |            |      |  +------------+  |   |
-|    |           |------------(Cria/Atualiza Estado)--------------------->|                  |   |
-|    |  +------------------+  |      |  +------------------+  |      |                  |   |
-|    |  | Agente Validação | <------------| Assinatura:        |      |                  |   |
-|    |  | (SB Trigger)     |  |      |  | sub-validation   |      |                  |   |
-|    |  +------------------+  |      |  +------------------+  |      |                  |   |
-|    |           |            |      |           |            |      +------------------+   |
-|    |           |------------(Cria/Atualiza Estado)--------------------->|                  |
-|    |  +------------------+  |      |  +------------------+  |
-|    |  | Agente Risco     | <------------| Assinatura:        |
-|    |  | (SB Trigger)     |  |      |  | sub-riskanalysis |
-|    |  +------------------+  |      |  +------------------+  |
-|    |         ...etc         |      |         ...etc         |
-|    |                        |      |                        |
-|    +------------------------+      +------------------------+
-|                                                                                         |
-+-----------------------------------------------------------------------------------------+
+```mermaid
+graph TD
+    subgraph "Usuário/Sistema Externo"
+        A[Requisição HTTP<br>POST /api/onboarding]
+    end
+
+    subgraph "Plataforma Azure"
+        subgraph "Azure Function App"
+            B[Agente de Recepção<br>(HTTP Trigger)]
+            D[Agente de Validação<br>(Service Bus Trigger)]
+            F[Agente de Risco<br>(Service Bus Trigger)]
+            H[...]
+        end
+
+        subgraph "Azure Service Bus"
+            C[Tópico: onboarding-process]
+        end
+
+        subgraph "Azure Cosmos DB (API MongoDB)"
+            G[Coleção: Processos]
+        end
+
+        A --> B
+        B -- Publica Evento<br>NewClientReceived --> C
+        B -- Cria Estado Inicial --> G
+
+        C -- Assinatura: sub-validation --> D
+        D -- Atualiza Estado --> G
+        D -- Publica Evento<br>ValidationCompleted --> C
+
+        C -- Assinatura: sub-riskanalysis --> F
+        F -- Atualiza Estado --> G
+        F -- Publica Evento<br>RiskAnalysisCompleted --> C
+
+        C -- ... --> H
+    end
 
 ```
 
