@@ -13,40 +13,51 @@ A maioria das aplicações de IA atuais opera em um paradigma de "Perguntas e Re
 
 ```mermaid
 graph TD
+    %% Define os nós e seus textos
+    A["Requisição HTTP<br>POST /api/onboarding"]
+    B["Agente de Recepção<br>(HTTP Trigger)"]
+    C["Tópico: onboarding-process"]
+    D["Agente de Validação<br>(Service Bus Trigger)"]
+    F["Agente de Risco<br>(Service Bus Trigger)"]
+    G["Coleção: Processos"]
+    H["..."]
+    
+    %% Define a estrutura dos subgráficos
     subgraph "Usuário/Sistema Externo"
-        A[Requisição HTTP<br>POST /api/onboarding]
+        A
     end
 
     subgraph "Plataforma Azure"
         subgraph "Azure Function App"
-            B[Agente de Recepção<br>(HTTP Trigger)]
-            D[Agente de Validação<br>(Service Bus Trigger)]
-            F[Agente de Risco<br>(Service Bus Trigger)]
-            H[...]
+            B
+            D
+            F
+            H
         end
 
         subgraph "Azure Service Bus"
-            C[Tópico: onboarding-process]
+            C
         end
 
         subgraph "Azure Cosmos DB (API MongoDB)"
-            G[Coleção: Processos]
+            G
         end
-
-        A --> B
-        B -- Publica Evento<br>NewClientReceived --> C
-        B -- Cria Estado Inicial --> G
-
-        C -- Assinatura: sub-validation --> D
-        D -- Atualiza Estado --> G
-        D -- Publica Evento<br>ValidationCompleted --> C
-
-        C -- Assinatura: sub-riskanalysis --> F
-        F -- Atualiza Estado --> G
-        F -- Publica Evento<br>RiskAnalysisCompleted --> C
-
-        C -- ... --> H
     end
+
+    %% Define as conexões e os textos das setas
+    A --> B
+    B -- "Publica Evento<br>NewClientReceived" --> C
+    B -- "Cria Estado Inicial" --> G
+    
+    C -- "Assinatura: sub-validation" --> D
+    D -- "Atualiza Estado" --> G
+    D -- "Publica Evento<br>ValidationCompleted" --> C
+    
+    C -- "Assinatura: sub-riskanalysis" --> F
+    F -- "Atualiza Estado" --> G
+    F -- "Publica Evento<br>RiskAnalysisCompleted" --> C
+    
+    C -- "..." --> H
 
 ```
 
