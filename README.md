@@ -1,9 +1,9 @@
 # Analista de Processos de Negócio Autônomo (BPA-AI)
 
-[![Status do Build](https://img.shields.io/badge/build-pending-yellow)](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/actions)
+[![Status da Infraestrutura](https://img.shields.io/badge/infra-concluída-brightgreen)](/infra/main.bicep)
 [![Licença](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-Um projeto de plataforma serverless e event-driven no Azure que orquestra agentes de IA para automatizar processos de negócio complexos, como o onboarding de novos clientes.
+Um projeto de plataforma serverless e event-driven no Azure que orquestra agentes de IA para automatizar processos de negócio complexos, como o onboarding de novos clientes. Este repositório serve como uma vitrine de arquitetura de nuvem e engenharia de IA, documentado passo a passo para aprendizado e replicação.
 
 ## O Problema a ser Resolvido
 
@@ -11,74 +11,101 @@ A maioria das aplicações de IA atuais opera em um paradigma de "Perguntas e Re
 
 ## Diagrama da Arquitetura
 
-*(A ser inserido: Um diagrama claro e conciso da nossa arquitetura final. Manteremos este placeholder por enquanto.)*
-
 ```
-[API Gateway] -> [Function de Recepção] -> [Cosmos DB: Cria Estado]
-      |
-      v
-[Service Bus Topic: NewClientReceived]
-      |
-      v (Filtro de Assinatura)
-[Function de Validação] -> [API Externa] -> [Cosmos DB: Atualiza Estado]
-      |
-      v
-[Service Bus Topic: ValidationCompleted]
-      |
-      v ... (e assim por diante para os outros agentes)
+                               +-----------------------------+
+                               |      Requisição HTTP        |
+                               | (ex: POST /api/onboarding)  |
+                               +-----------------------------+
+                                             |
+                                             v
++-----------------------------------------------------------------------------------------+
+|                                    AZURE PLATFORM                                       |
+|                                                                                         |
+|    +------------------------+      +------------------------+      +------------------+   |
+|    | Azure Function App     |      | Azure Service Bus      |      | Azure Cosmos DB  |   |
+|    |                        |      |                        |      | (API MongoDB)    |   |
+|    |  +------------------+  |      |  +------------------+  |      |                  |   |
+|    |  | Agente Recepção  | ------------>| Tópico: Onboarding |      |  +------------+  |   |
+|    |  |  (HTTP Trigger)  |  |      |  +------------------+  |      |  | Coleção:   |  |   |
+|    |  +------------------+  |      |           |            |      |  | Processos  |  |   |
+|    |           |            |      |           |            |      |  +------------+  |   |
+|    |           |------------(Cria/Atualiza Estado)--------------------->|                  |   |
+|    |  +------------------+  |      |  +------------------+  |      |                  |   |
+|    |  | Agente Validação | <------------| Assinatura:        |      |                  |   |
+|    |  | (SB Trigger)     |  |      |  | sub-validation   |      |                  |   |
+|    |  +------------------+  |      |  +------------------+  |      |                  |   |
+|    |           |            |      |           |            |      +------------------+   |
+|    |           |------------(Cria/Atualiza Estado)--------------------->|                  |
+|    |  +------------------+  |      |  +------------------+  |
+|    |  | Agente Risco     | <------------| Assinatura:        |
+|    |  | (SB Trigger)     |  |      |  | sub-riskanalysis |
+|    |  +------------------+  |      |  +------------------+  |
+|    |         ...etc         |      |         ...etc         |
+|    |                        |      |                        |
+|    +------------------------+      +------------------------+
+|                                                                                         |
++-----------------------------------------------------------------------------------------+
+
 ```
 
 ## Stack de Tecnologia
 
-| Categoria           | Tecnologia                                                                                             |
-| ------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Cloud**           | ![Microsoft Azure](https://img.shields.io/badge/Microsoft_Azure-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white) |
-| **Computação**      | ![Azure Functions](https://img.shields.io/badge/Azure_Functions-0078D4?style=for-the-badge&logo=azure-functions&logoColor=white) |
-| **Mensageria**      | ![Azure Service Bus](https://img.shields.io/badge/Service_Bus-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white)     |
-| **Banco de Dados**  | ![Azure Cosmos DB](https://img.shields.io/badge/Cosmos_DB-0078D4?style=for-the-badge&logo=azure-cosmos-db&logoColor=white)       |
-| **Inteligência Artificial** | ![Azure OpenAI](https://img.shields.io/badge/Azure_OpenAI-0078D4?style=for-the-badge&logo=openai&logoColor=white)            |
-| **Infra as Code**   | ![Bicep](https://img.shields.io/badge/Bicep-0078D4?style=for-the-badge&logo=bicep&logoColor=white)                   |
+| Categoria | Tecnologia |
+| :--- | :--- |
+| **Cloud** | ![Microsoft Azure](https://img.shields.io/badge/Microsoft_Azure-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white) |
+| **Computação** | ![Azure Functions](https://img.shields.io/badge/Azure_Functions-0078D4?style=for-the-badge&logo=azure-functions&logoColor=white) |
+| **Mensageria** | ![Azure Service Bus](https://img.shields.io/badge/Service_Bus-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white) |
+| **Banco de Dados** | ![Azure Cosmos DB for MongoDB](https://img.shields.io/badge/Cosmos_DB_for_MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white) |
+| **Inteligência Artificial** | ![Azure OpenAI](https://img.shields.io/badge/Azure_OpenAI-0078D4?style=for-the-badge&logo=openai&logoColor=white) |
+| **Infra as Code** | ![Bicep](https://img.shields.io/badge/Bicep-0078D4?style=for-the-badge&logo=bicep&logoColor=white) |
 | **Observabilidade** | ![Application Insights](https://img.shields.io/badge/App_Insights-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white) |
 
 
 ## Como Funciona: Workflow de Onboarding de Cliente
 
-O sistema opera como uma máquina de estados distribuída, orquestrada por eventos:
+O sistema opera como uma máquina de estados distribuída, orquestrada por eventos, onde cada passo é executado por um agente especializado:
 
-1.  **Recepção:** Uma requisição HTTP inicia um novo processo de onboarding. Um estado inicial é criado no Cosmos DB e um evento `NewClientReceived` é publicado.
-2.  **Validação e Enriquecimento:** Um agente reage ao evento, consulta APIs externas para enriquecer os dados do cliente e valida as informações. Ao concluir, publica um evento `ValidationCompleted`.
-3.  **Análise de Risco:** Um agente especialista em risco (utilizando RAG) consome o evento anterior, analisa os dados enriquecidos contra uma base de conhecimento interna e calcula um score de risco. Ao concluir, publica `RiskAnalysisCompleted`.
-4.  **Tomada de Decisão:** Um agente de decisão aplica regras de negócio ao score de risco, decidindo por aprovar, rejeitar ou encaminhar para revisão humana. Publica `DecisionMade`.
-5.  **Comunicação:** Agentes finais notificam os sistemas relevantes (e-mail para o cliente, mensagem no Slack para a equipe interna, etc.) com base na decisão tomada.
+1.  **Recepção:** Uma requisição HTTP, contendo os dados iniciais de um cliente, inicia um novo processo de onboarding. O "Agente de Recepção" valida os dados, cria um documento de estado inicial no Cosmos DB e publica um evento `NewClientReceived` no tópico do Service Bus.
 
-## Getting Started
+2.  **Validação e Enriquecimento:** O "Agente de Validação", que assina o evento `NewClientReceived`, é ativado. Ele consulta APIs externas (como a da Receita Federal) para enriquecer os dados do cliente e os valida contra as regras de negócio. Ao concluir, atualiza o estado no Cosmos DB e publica um novo evento, como `ValidationCompleted`.
+
+3.  **Análise de Risco:** Um "Agente de Risco" reage ao evento de validação. Utilizando técnicas como RAG (Retrieval-Augmented Generation), ele analisa os dados enriquecidos contra uma base de conhecimento interna (políticas de crédito, histórico) para calcular um score de risco. O estado é novamente atualizado, e um evento `RiskAnalysisCompleted` é disparado.
+
+4.  **Tomada de Decisão:** O "Agente de Decisão" aplica regras de negócio ao score de risco, decidindo por aprovar, rejeitar ou encaminhar o caso para revisão humana. Ele atualiza o estado com a decisão final e publica `DecisionMade`.
+
+5.  **Comunicação:** Agentes finais, que assinam os eventos de decisão, são responsáveis por notificar os sistemas relevantes: enviar um e-mail de boas-vindas ao cliente, criar uma notificação no Slack para a equipe interna, etc., finalizando o workflow.
+
+## Getting Started: Provisionando a Infraestrutura
+
+Esta primeira fase consiste em provisionar toda a arquitetura necessária no Azure usando Infraestrutura como Código (IaC) com Bicep.
 
 ### Pré-requisitos
 
-- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- [Bicep](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/install)
-- [Python 3.10+](https://www.python.org/downloads/)
-- [Azure Functions Core Tools](https://docs.microsoft.com/azure/azure-functions/functions-run-local)
+- Uma Assinatura do Azure.
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) instalado e logado (`az login`).
+- [VS Code](https://code.visualstudio.com/) com a extensão [Bicep](https://marketplace.visualstudio.com/items?itemName=ms-azure-tools.vscode-bicep).
 
-### 1. Provisionar a Infraestrutura
+### Passos para o Deploy
 
-Clone o repositório e execute o seguinte comando para provisionar todos os recursos necessários no Azure:
+1.  **Clone o Repositório:**
+    ```bash
+    git clone https://github.com/SEU_USUARIO/bpa-ai.git
+    cd bpa-ai
+    ```
 
-```bash
-# Faça login na sua conta Azure
-az login
+2.  **Crie um Grupo de Recursos no Azure:**
+    Escolha um nome e uma localização para seu grupo de recursos. É recomendado usar uma região com ampla disponibilidade de serviços.
+    ```bash
+    # Exemplo usando a região Brazil South
+    az group create --name "rg-bpa-ai-dev" --location "brazilsouth"
+    ```
 
-# Crie o deployment a partir do arquivo principal do Bicep
-az deployment group create \
-  --resource-group SEU_RESOURCE_GROUP_NAME \
-  --template-file ./infra/main.bicep \
-  --parameters ./infra/main.parameters.json
-```
+3.  **Execute o Deploy com Bicep:**
+    Use o comando abaixo para implantar todos os recursos definidos no arquivo `/infra/main.bicep`. O processo é idempotente e pode levar alguns minutos.
+    ```bash
+    az deployment group create \
+      --resource-group "rg-bpa-ai-dev" \
+      --template-file ./infra/main.bicep
+    ```
 
-### 2. Configurar Aplicação
-
-*(Esta seção será detalhada após a Fase 1 de IaC, com instruções sobre como popular o `local.settings.json` das Functions a partir dos outputs do Bicep.)*
-
-### 3. Executar o Projeto
-
-*(Instruções futuras para rodar e testar o projeto.)*
+Ao final, você terá todos os componentes da arquitetura provisionados e prontos para a próxima fase: o desenvolvimento do código dos agentes.
