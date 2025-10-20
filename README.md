@@ -13,12 +13,12 @@ A maioria das aplicações de IA atuais opera em um paradigma de "Perguntas e Re
 
 ```
 mermaid
----
+
 config:
   theme: mc
   layout: elk
   look: neo
----
+
 flowchart TD
  subgraph external["Usuário / Sistema Externo"]
         A["POST /api/onboarding"]
