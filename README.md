@@ -12,51 +12,59 @@ A maioria das aplicações de IA atuais opera em um paradigma de "Perguntas e Re
 ## Diagrama da Arquitetura
 
 ```mermaid
-graph TD
-    %% Define os nós e seus textos
-    A["Requisição HTTP<br>POST /api/onboarding"]
-    B["Agente de Recepção<br>(HTTP Trigger)"]
-    C["Tópico: onboarding-process"]
-    D["Agente de Validação<br>(Service Bus Trigger)"]
-    F["Agente de Risco<br>(Service Bus Trigger)"]
-    G["Coleção: Processos"]
-    H["..."]
-    
-    %% Define a estrutura dos subgráficos
-    subgraph "Usuário/Sistema Externo"
-        A
-    end
+---
+config:
+  theme: mc
+  layout: elk
+  look: neo
+---
+flowchart TD
+ subgraph external["Usuário / Sistema Externo"]
+        A["POST /api/onboarding"]
+  end
 
-    subgraph "Plataforma Azure"
-        subgraph "Azure Function App"
-            B
-            D
-            F
-            H
-        end
+ subgraph funcapp["<div style='display:flex;align-items:center;justify-content:center;gap:6px;'>
+    <img src='https://raw.githubusercontent.com/benc-uk/icon-collection/master/azure-icons/Function-Apps.svg' style='width:32px;height:32px;'/>
+    <span>Azure Function App</span>
+</div>"]
+        B["Agente de Recepção<br>(HTTP Trigger)"]
+        D["Agente de Validação<br>(Service Bus Trigger)"]
+        F["Agente de Risco<br>(Service Bus Trigger)"]
+        H["..."]
+  end
 
-        subgraph "Azure Service Bus"
-            C
-        end
+ subgraph bus["<div style='display:flex;align-items:center;justify-content:center;gap:6px;'>
+    <img src='https://raw.githubusercontent.com/benc-uk/icon-collection/master/azure-icons/Service-Bus.svg' style='width:32px;height:32px;'/>
+    <span>Azure Service Bus</span>
+</div>"]
+        C["Tópico: onboarding-process"]
+  end
 
-        subgraph "Azure Cosmos DB (API MongoDB)"
-            G
-        end
-    end
+ subgraph db["<div style='display:flex;align-items:center;justify-content:center;gap:6px;'>
+    <img src='https://raw.githubusercontent.com/benc-uk/icon-collection/master/azure-docs/cosmos-db.svg' style='width:32px;height:32px;'/>
+    <span>Azure Cosmos DB (API MongoDB)</span>
+</div>"]
+        G["Coleção: Processos"]
+  end
 
-    %% Define as conexões e os textos das setas
-    A --> B
-    B -- "Publica Evento<br>NewClientReceived" --> C
-    B -- "Cria Estado Inicial" --> G
-    
+ subgraph azure["<div style='display:flex;align-items:center;justify-content:center;gap:6px;'>
+    <img src='https://az-icons.com/export/icons/08e715d31bc4333d9100cdf2d020f47f.svg' style='width:32px;height:32px;'/>
+    <span>Plataforma Azure</span>
+</div>"]
+        funcapp
+        bus
+        db
+  end
+
+    A -- Chamada HTTP --> B
+    B -- Publica Evento<br>NewClientReceived --> C
+    B -- Cria Estado Inicial --> G
     C -- "Assinatura: sub-validation" --> D
-    D -- "Atualiza Estado" --> G
-    D -- "Publica Evento<br>ValidationCompleted" --> C
-    
+    D -- Atualiza Estado --> G
+    D -- Publica Evento<br>ValidationCompleted --> C
     C -- "Assinatura: sub-riskanalysis" --> F
-    F -- "Atualiza Estado" --> G
-    F -- "Publica Evento<br>RiskAnalysisCompleted" --> C
-    
+    F -- Atualiza Estado --> G
+    F -- Publica Evento<br>RiskAnalysisCompleted --> C
     C -- "..." --> H
 
 ```
