@@ -10,7 +10,7 @@ Um projeto de plataforma serverless e event-driven no Azure que orquestra agente
 A maioria das aplicações de IA atuais opera em um paradigma de "Perguntas e Respostas". O usuário pergunta, a IA responde. Este projeto eleva esse paradigma para "Tarefas e Ações". Em vez de ser um oráculo passivo, o BPA-AI atua como um time de "operários digitais" autônomos que executam um workflow de negócio de ponta a ponta, tomando decisões e interagindo com outros sistemas.
 
 ## Diagrama da Arquitetura
-![Diagrama](https://iaplaybook.tech/images/posts/20251020-bpa-diagram-01.svg)
+![Diagrama](https://iaplaybook.tech/images/posts/20251020-bpa-diagram-01.png)
 
 ## Stack de Tecnologia
 
