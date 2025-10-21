@@ -53,7 +53,7 @@ Esta primeira fase consiste em provisionar toda a arquitetura necessária no Azu
 
 1.  **Clone o Repositório:**
     ```bash
-    git clone https://github.com/SEU_USUARIO/bpa-ai.git
+    git clone https://github.com/EstevesMarques/bpa-ai.git
     cd bpa-ai
     ```
 
